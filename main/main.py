@@ -42,7 +42,7 @@ while True:
                 sleep(2.5)
                 print('''
                 ------------------------------------
-                        Digite um valor valido
+                      Digite um valor valido
                 ------------------------------------
                 ''')
     
@@ -51,17 +51,17 @@ while True:
             print("PROCESSANDO...")
             sleep(2.5)
             print('''
-            ------------------------------------
-              Limite de Saques diarios atingido
-            ------------------------------------
+                ------------------------------------
+                 Limite de Saques diarios atingido
+                ------------------------------------
             ''')
         elif saldo == 0:
             print("PROCESSANDO...")
             sleep(2.5)
             print(''' 
-            ------------------------------------
-                  Sua conta esta sem saldo
-            ------------------------------------
+                ------------------------------------
+                     Sua conta esta sem saldo
+                ------------------------------------
             ''')
             break
         elif qntd_saques <= LIMITES_SAQUE:
