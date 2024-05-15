@@ -114,15 +114,15 @@ while True:
         else:
             extrato = f'''
 -=-=-=-=-=-=-=-=-=-=-=-=-=
-Depositos feitos:
+ Depositos feitos:
 -=-=-=-=-=-=-=-=-=-=-=-=-=
 {extrato_deposito}
 -=-=-=-=-=-=-=-=-=-=-=-=-=
-Saques feitos:
+ Saques feitos:
 -=-=-=-=-=-=-=-=-=-=-=-=-=
 {extrato_saque}
 -=-=-=-=-=-=-=-=-=-=-=-=-=
-Saldo: R${saldo:.2f}
+ Saldo: R${saldo:.2f}
 -=-=-=-=-=-=-=-=-=-=-=-=-=
                 '''            
         print("PROCESSANDO...")
