@@ -1,141 +1,195 @@
 from time import sleep
+import textwrap
 
-menu = '''
-==================
-[d] DEPOSITAR
-[s] SACAR
-[e] EXTRATO
-[q] SAIR
-==================
+def menu():
+    menu = '''
+    =========== MENU ============
+    [d]\tDEPOSITAR
+    [s]\tSACAR
+    [e]\tEXTRATO
+    [nc]\tNova Conta
+    [lc]\tListar Contas
+    [nu]\tNovo Usuario
+    [q]\tSAIR
+    ==============================
 
-=> '''
+    => '''
+    return input(textwrap.dedent(menu))
 
-saldo = 0 
-limite_por_saque = 500
-extrato = ""
-numeros_saque = 0 
-LIMITES_SAQUE = 3
-qntd_saques = 0
-extrato_saque = ""
-extrato_deposito = ""
-
-
-while True:
-    opc = input(menu).lower().strip()
-
-    if opc == 'd':
-        while True:
-            valor_deposito = float(input("Valor do deposito: R$"))
-            if valor_deposito > 0:
-                saldo += valor_deposito  
-                extrato_deposito += f"Deposito no valor de R${valor_deposito:.2f}\n"
-                print("PROCESSANDO...")
-                sleep(2.5)
-                print('''
-                ------------------------------------
-                   Deposito Concluido com Sucesso
-                ------------------------------------
-                ''')
-                break
-            else:
-                print("PROCESSANDO...")
-                sleep(2.5)
-                print('''
-                ------------------------------------
-                      Digite um valor valido
-                ------------------------------------
-                ''')
-    
-    elif opc == 's':
-        if qntd_saques == LIMITES_SAQUE:
+def depositar(saldo, valor,/):
+    extrato_deposito = ""
+    while True:
+        if valor > 0:
+            saldo += valor 
+            extrato_deposito += f"Deposito no valor de R${valor:.2f}\n"
             print("PROCESSANDO...")
             sleep(2.5)
             print('''
-                ------------------------------------
-                 Limite de Saques diarios atingido
-                ------------------------------------
-            ''')
-        elif saldo == 0:
-            print("PROCESSANDO...")
-            sleep(2.5)
-            print(''' 
-                ------------------------------------
-                     Sua conta esta sem saldo
-                ------------------------------------
+            ------------------------------------
+            Deposito Concluido com Sucesso
+            ------------------------------------
             ''')
             break
-        elif qntd_saques <= LIMITES_SAQUE:
-            while True:
-                valor_saque = float(input("Valor do saque: R$"))
-                if valor_saque <=0:
-                    print("PROCESSANDO...")
-                    sleep(2)
-                    print('''
-                    ------------------------------------
-                           Digite um valor valido 
-                    ------------------------------------
-                    ''')
-                elif valor_saque > saldo:
-                    print("PROCESSANDO...")
-                    sleep(2.5)
-                    print(f'''
-                    ------------------------------------
-                                Saque falho
-                    ------------------------------------
-                            SEU SALDO EH: R${saldo:.2f}
-                    ------------------------------------
-                    ''')
-                    break
-                elif valor_saque > limite_por_saque:
-                    print("PROCESSANDO...")
-                    sleep(2.5)
-                    print(f'''
-                    ------------------------------------
-                                Saque falho
-                    ------------------------------------
-                        LIMITE POR SAQUE: R${limite_por_saque:.2f}
-                    ------------------------------------
-                    ''')
-                elif limite_por_saque >= valor_saque <= saldo:
-                    saldo -= valor_saque
-                    extrato_saque += f"Saque feito no valor de R${valor_saque:.2f}\n"
-                    qntd_saques += 1
-                    print("PROCESSANDO...")
-                    sleep(2.5)
-                    print('''
-                    ------------------------------------
-                         Saque Concluido com Sucesso
-                    ------------------------------------
-                    ''')
-                    break
-    elif opc == "e":
-        if extrato_deposito == "" and extrato_saque == "":
-            extrato = "A conta nao foi movimentada"
         else:
-            extrato = f'''
--=-=-=-=-=-=-=-=-=-=-=-=-=
- Depositos feitos:
--=-=-=-=-=-=-=-=-=-=-=-=-=
-{extrato_deposito}
--=-=-=-=-=-=-=-=-=-=-=-=-=
- Saques feitos:
--=-=-=-=-=-=-=-=-=-=-=-=-=
-{extrato_saque}
--=-=-=-=-=-=-=-=-=-=-=-=-=
- Saldo: R${saldo:.2f}
--=-=-=-=-=-=-=-=-=-=-=-=-=
-                '''            
-        print("PROCESSANDO...")
-        sleep(2.5)
-        print(extrato)
-    elif opc == 'q':
-        print('''
-        -=-=-=-=-=-=-=-=-=-=-=-=-=
-              VOLTE SEMPRE
-        -=-=-=-=-=-=-=-=-=-=-=-=-=
-        ''')
-        break                
+            print("PROCESSANDO...")
+            sleep(2.5)
+            print('''
+            ------------------------------------
+                Digite um valor valido
+            ------------------------------------
+            ''')
+        return saldo, extrato_deposito
+
+def sacar(*, saldo, valor, limite):
+    qntd_saques = 0
+    extrato_saque = ""
+
+    while True:
+        if valor <=0:
+            print("PROCESSANDO...")
+            sleep(2)
+            print('''
+            ------------------------------------
+                Digite um valor valido 
+            ------------------------------------
+            ''')
+        elif valor > saldo:
+            print("PROCESSANDO...")
+            sleep(2.5)
+            print(f'''
+            ------------------------------------
+                        Saque falho
+            ------------------------------------
+                    SEU SALDO EH: R${saldo:.2f}
+            ------------------------------------
+            ''')
+            break
+        elif valor > limite:
+            print("PROCESSANDO...")
+            sleep(2.5)
+            print(f'''
+            ------------------------------------
+                        Saque falho
+            ------------------------------------
+                LIMITE POR SAQUE: R${limite:.2f}
+            ------------------------------------
+            ''')
+        elif limite >= valor <= saldo:
+            saldo -= valor
+            extrato_saque += f"Saque feito no valor de R${valor:.2f}\n"
+            qntd_saques += 1
+            print("PROCESSANDO...")
+            sleep(2.5)
+            print('''
+            ------------------------------------
+                Saque Concluido com Sucesso
+            ------------------------------------
+            ''')
+            break
+        return saldo, extrato_saque, qntd_saques
+
+def exibir_extrato(saldo, /, *, extrato_d, extrato_s):
+    extrato = f'''
+    -=-=-=-=-=-=-=-=-=-=-=-=-=
+    Depositos feitos:
+    -=-=-=-=-=-=-=-=-=-=-=-=-=
+    {extrato_d}
+    -=-=-=-=-=-=-=-=-=-=-=-=-=
+    Saques feitos:
+    -=-=-=-=-=-=-=-=-=-=-=-=-=
+    {extrato_s}
+    -=-=-=-=-=-=-=-=-=-=-=-=-=
+    Saldo: R${saldo:.2f}
+    -=-=-=-=-=-=-=-=-=-=-=-=-=
+    '''            
+    return extrato
+
+def criar_usuario(usuario):
+    print
+
+def filtrar_usuario(cpf, usuario):
+    print()
+
+def main():
+    saldo = 0 
+    limite = 500
+    LIMITES_SAQUE = 3
+    usuarios = []
+    contas = []
+    
+
+    while True:
+        opc = menu()
+
+        if opc == 'd':
+            valor = float(input("Valor do deposito: R$"))
+
+            saldo, extrato_deposito = depositar(saldo, valor)
+        
+        elif opc == 's':
+            if qntd_saques == LIMITES_SAQUE:
+                print("PROCESSANDO...")
+                sleep(2.5)
+                print('''
+                    ------------------------------------
+                     Limite de Saques diarios atingido
+                    ------------------------------------
+                ''')
+            elif saldo == 0:
+                print("PROCESSANDO...")
+                sleep(2.5)
+                print(''' 
+                    ------------------------------------
+                        Sua conta esta sem saldo
+                    ------------------------------------
+                ''')
+                break
+            else:
+                valor = float(input("Valor do saque: R$"))
+                saldo, extrato_saque, qntd_saques = sacar(saldo=saldo, valor=valor, limite=limite)
+        elif opc == "e":
+            if extrato_deposito == "" and extrato_saque == "":
+                extrato = "A conta nao foi movimentada"
+            else:
+                print("PROCESSANDO...")
+                sleep(2.5)
+                exibir_extrato(saldo, extrato_d=extrato_deposito, extrato_s=extrato_saque)
+        elif opc == 'q':
+            print('''
+            -=-=-=-=-=-=-=-=-=-=-=-=-=
+                VOLTE SEMPRE
+            -=-=-=-=-=-=-=-=-=-=-=-=-=
+            ''')
+            break                
                 
+
+main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                
     
