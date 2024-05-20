@@ -163,12 +163,12 @@ def criar_conta(agencia, numero_conta, usuarios):
     usuario = filtrar_usuario(cpf, usuarios)
 
     if usuario:
-         print('''
+        print('''
 ------------------------------
    Conta criada com sucesso
 ------------------------------
 ''')
-         return {'agencia':agencia, 'numero_conta':numero_conta, 'usuario':usuario}
+        return {'agencia':agencia, 'numero_conta':numero_conta, 'usuario':usuario}
     print('''
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        Usuario nao encontrado.
@@ -177,13 +177,13 @@ def criar_conta(agencia, numero_conta, usuarios):
 
 def listar_contas(contas):
     for conta in contas:
-          linha = f'''
-                Agencia:\t{conta['agencia']}
-                C/C:\t\t{conta['numero_conta']}
-                Titular:\t{conta['usuario']['nome']}      
-    '''
-    print('=' *100)
-    print(textwrap.dedent(linha))
+        linha = f'''
+            Agencia:\t{conta['agencia']}
+            C/C:\t\t{conta['numero_conta']}
+            Titular:\t{conta['usuario']['nome']}      
+        '''
+        print('=' *100)
+        print(textwrap.dedent(linha))
 
 def main():
     saldo = 0 
