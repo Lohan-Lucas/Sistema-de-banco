@@ -112,15 +112,15 @@ def exibir_extrato(saldo, /, *, extrato_d, extrato_s):
     else:
         extrato = f'''
 -=-=-=-=-=-=-=-=-=-=-=-=-=
-  Depositos feitos:
+   Depositos feitos:
 -=-=-=-=-=-=-=-=-=-=-=-=-=
 \n{extrato_d}
 -=-=-=-=-=-=-=-=-=-=-=-=-=
-  Saques feitos:
+   Saques feitos:
 -=-=-=-=-=-=-=-=-=-=-=-=-=
 \n{extrato_s}
 -=-=-=-=-=-=-=-=-=-=-=-=-=
-  Saldo: R${saldo:.2f}
+   Saldo: R${saldo:.2f}
 -=-=-=-=-=-=-=-=-=-=-=-=-=
     '''            
     print(extrato)
