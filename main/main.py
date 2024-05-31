@@ -1,5 +1,226 @@
+from abc import ABC, abstractclassmethod, abstractproperty, abstractmethod
 from time import sleep
+from datetime import datetime
 import textwrap
+
+class Cliente:
+    def __init__(self, endereco):
+        self.endereco = endereco
+        self.contas = []
+    
+    def realizar_transacao(self, conta, transacao):
+        transacao.registrar(conta)
+    
+    def adicionar_conta(self, conta):
+        self.contas.append(conta)
+
+
+class PessoaFisica(Cliente):
+    def __init__(self, nome, data_nascimento, cpf, endereco):
+        super().__init__(endereco)
+        self.nome = nome
+        self.data_nascimento = data_nascimento
+        self.cpf = cpf
+
+
+class Conta:
+    def __init__(self, numero, cliente):
+        self._saldo = 0
+        self._numero = numero
+        self._agencia = '0001'
+        self._cliente = cliente
+        self._historico = Historico()
+        self._limite = 500
+        self._LIMITES_SAQUE = 3
+        self._qntd_saques = 0
+
+    @classmethod
+    def nova_conta(cls, cliente, numero):
+        return cls(numero, cliente)
+    
+    @property
+    def saldo(self):
+        return self._saldo
+
+    @property
+    def numero(self):
+        return self._numero
+    
+    @property
+    def agencia(self):
+        return self._agencia
+    
+    @property
+    def cliente(self):
+        return self._cliente
+    
+    @property
+    def historico(self):
+        return self._historico
+    
+    @property
+    def limite(self):
+        return self._limite
+    
+    @property
+    def limiteSaque(self):
+        return self._LIMITES_SAQUE
+    
+    @property
+    def qntdSaque(self):
+        return self._qntd_saques
+
+    
+    def sacar(self, valor):
+        if self.qntdSaque == self.limiteSaque:
+            print("PROCESSANDO...")
+            sleep(2.5)
+            print('''
+                ------------------------------------
+                 Limite de Saques diarios atingido
+                ------------------------------------
+            ''')
+        elif self.saldo == 0:
+            print("PROCESSANDO...")
+            sleep(2.5)
+            print(''' 
+                ------------------------------------
+                    Sua conta esta sem saldo
+                ------------------------------------
+            ''')
+        else:
+            while True:
+                if valor <= 0:
+                    print("PROCESSANDO...")
+                    sleep(2)
+                    print('''
+                    ------------------------------------
+                         Digite um valor valido 
+                    ------------------------------------
+                    ''')
+                    return False
+                elif valor > self.saldo:
+                    print("PROCESSANDO...")
+                    sleep(2.5)
+                    print(f'''
+                    ------------------------------------
+                                Saque falho
+                    ------------------------------------
+                            SEU SALDO EH: R${self.saldo:.2f}
+                    ------------------------------------
+                    ''')
+                    return False
+                elif valor > self.limite:
+                    print("PROCESSANDO...")
+                    sleep(2.5)
+                    print(f'''
+                    ------------------------------------
+                                Saque falho
+                    ------------------------------------
+                        LIMITE POR SAQUE: R${self.limite:.2f}
+                    ------------------------------------
+                    ''')
+                    return False
+                elif self.limite >= valor <= self.saldo:
+                    self._saldo -= valor
+                    self._qntd_saques += 1
+                    print("PROCESSANDO...")
+                    sleep(2.5)
+                    print('''
+                    ------------------------------------
+                        Saque Concluido com Sucesso
+                    ------------------------------------
+                    ''')
+                    return True
+
+    def depositar(self, valor):
+        while True:
+            if valor > 0:
+                self._saldo += valor 
+                print("PROCESSANDO...")
+                sleep(2.5)
+                print('''
+                ------------------------------------
+                   Deposito Concluido com Sucesso
+                ------------------------------------
+                ''')
+                return True
+            else:
+                print("PROCESSANDO...")
+                sleep(2.5)
+                print('''
+                ------------------------------------
+                      Digite um valor valido
+                ------------------------------------
+                ''')
+                return False
+
+    def __str__(self):
+        return f"""
+            Agencia:\t{self.agencia}
+            C/C:\t\t{self.numero}
+            Titular:\t{self.cliente.nome}
+        """
+    
+
+class Transacao(ABC):
+    @property
+    @abstractproperty
+    def valor(self):
+        pass
+    
+    @abstractclassmethod
+    def registrar(self, conta):
+        pass
+
+
+class Historico:
+    def __init__(self):
+        self._transacoes = []
+
+    @property
+    def transacoes(self):
+        return self._transacoes
+    
+    def adicionar_transacao(self, transacao):
+        self._transacoes.append(
+            {
+                "tipo": transacao.__class__.__name__,
+                "valor": transacao.valor,
+                "data": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
+            }
+        )
+
+
+class Sacar(Transacao):
+    def __init__(self, valor):
+        self._valor = valor
+
+    @property
+    def valor(self):
+        return self._valor
+    
+    def registrar(self, conta):
+        sucesso_transacao = conta.sacar(self.valor)
+
+        if sucesso_transacao:
+            conta.historico.adicionar_transacao(self)
+
+
+class Depositar(Transacao):
+    def __init__(self, valor):
+        self._valor = valor
+
+    @property
+    def valor(self):
+        return self._valor
+    
+    def registrar(self, conta):
+        sucesso_transacao = conta.depositar(self.valor)
+
+        if sucesso_transacao:
+            conta.historico.adicionar_transacao(self)
+
 
 def menu():
     menu = '''
@@ -16,119 +237,43 @@ def menu():
     => '''
     return input(textwrap.dedent(menu))
 
+def depositar(clientes):
+    cpf = input("Informe o CPF do cliente: ")
+    cliente = filtrar_cliente(cpf, clientes)
 
-def depositar(saldo, valor, extrato_deposito,/):
-    while True:
-        if valor > 0:
-            saldo += valor 
-            extrato_deposito += f"Deposito no valor de R${valor:.2f}\n"
-            print("PROCESSANDO...")
-            sleep(2.5)
-            print('''
-            ------------------------------------
-               Deposito Concluido com Sucesso
-            ------------------------------------
-            ''')
-            break
-        else:
-            print("PROCESSANDO...")
-            sleep(2.5)
-            print('''
-            ------------------------------------
-                Digite um valor valido
-            ------------------------------------
-            ''')
-    return saldo, extrato_deposito
+    if not cliente:
+        print("!!! Cliente nao encontrado !!!")
+        return
+    
+    valor = float(input("Informe o valor do deposito: R$"))
+    transacao = Depositar(valor)
 
+    conta = recuperar_conta_cliente(cliente)
+    if not conta:
+        return
+    
+    cliente.realizar_transacao(conta, transacao)
 
-def sacar(*, saldo, limite, limites_saques, qntd_saques, extrato_saque):
-    if qntd_saques == limites_saques:
-                print("PROCESSANDO...")
-                sleep(2.5)
-                print('''
-                    ------------------------------------
-                     Limite de Saques diarios atingido
-                    ------------------------------------
-                ''')
-    elif saldo == 0:
-                print("PROCESSANDO...")
-                sleep(2.5)
-                print(''' 
-                    ------------------------------------
-                        Sua conta esta sem saldo
-                    ------------------------------------
-                ''')
-    else:
-        valor = float(input("Valor do saque: R$"))
-        while True:
-            if valor <=0:
-                print("PROCESSANDO...")
-                sleep(2)
-                print('''
-                ------------------------------------
-                    Digite um valor valido 
-                ------------------------------------
-                ''')
-            elif valor > saldo:
-                print("PROCESSANDO...")
-                sleep(2.5)
-                print(f'''
-                ------------------------------------
-                            Saque falho
-                ------------------------------------
-                        SEU SALDO EH: R${saldo:.2f}
-                ------------------------------------
-                ''')
-                break
-            elif valor > limite:
-                print("PROCESSANDO...")
-                sleep(2.5)
-                print(f'''
-                ------------------------------------
-                            Saque falho
-                ------------------------------------
-                    LIMITE POR SAQUE: R${limite:.2f}
-                ------------------------------------
-                ''')
-                break
-            elif limite >= valor <= saldo:
-                saldo -= valor
-                extrato_saque += f"Saque feito no valor de R${valor:.2f}\n"
-                qntd_saques += 1
-                print("PROCESSANDO...")
-                sleep(2.5)
-                print('''
-                ------------------------------------
-                    Saque Concluido com Sucesso
-                ------------------------------------
-                ''')
-                break
-    return saldo, extrato_saque, qntd_saques
+def sacar(clientes):
+    cpf = input("Informe o CPF do cliente: ")
+    cliente = filtrar_cliente(cpf, clientes)
 
+    if not cliente:
+        print("!!! Cliente nao encontrado !!!")
+        return
+    
+    valor = float(input("Informe o valor do saque: R$"))
+    transacao = Sacar(valor)
 
-def exibir_extrato(saldo, /, *, extrato_d, extrato_s): 
-    if extrato_d == "" and extrato_s == "":
-        extrato = "\nA conta nao foi movimentada"
-    else:
-        extrato = f'''
--=-=-=-=-=-=-=-=-=-=-=-=-=
-  Depositos feitos:
--=-=-=-=-=-=-=-=-=-=-=-=-=
-\n{extrato_d}
--=-=-=-=-=-=-=-=-=-=-=-=-=
-  Saques feitos:
--=-=-=-=-=-=-=-=-=-=-=-=-=
-\n{extrato_s}
--=-=-=-=-=-=-=-=-=-=-=-=-=
-  Saldo: R${saldo:.2f}
--=-=-=-=-=-=-=-=-=-=-=-=-=
-    '''            
-    print(extrato)
+    conta = recuperar_conta_cliente(cliente)
+    if not conta:
+        return
+    
+    cliente.realizar_transacao(conta, transacao)
 
-
-def criar_usuario(usuarios):
+def criar_cliente(clientes):
     cpf = input("Informe o CPF(somente numeros): ")
-    usuario = filtrar_usuario(cpf, usuarios)
+    usuario = filtrar_cliente(cpf, clientes)
 
     if usuario:
          print('''
@@ -141,88 +286,102 @@ def criar_usuario(usuarios):
     data_nascimento = input("Informe a data de nascimento(dd/mm/aaaa): ")
     endereco = input("Informe o endereco(logradouro, nro - bairro - cidade/sigla estado): ")
 
-    usuarios.append({'nome':nome,
-                     'data_nascimento':data_nascimento,
-                     'endereco':endereco,
-                     'cpf':cpf 
-                     })
+    cliente = PessoaFisica(nome=nome, data_nascimento=data_nascimento, cpf=cpf, endereco=endereco)
+    
+    clientes.append(cliente)
     print('''
 ------------------------------
   Usuario criado com sucesso
 ------------------------------
 ''')
-
-
-def filtrar_usuario(cpf, usuarios):
-    usuarios_filtrados = [usuario for usuario in usuarios if usuario['cpf']==cpf]
-    return usuarios_filtrados[0] if usuarios_filtrados else None
-
-
-def criar_conta(agencia, numero_conta, usuarios):
+    
+def criar_conta(clientes, numero, contas):
     cpf = input("Informe o CPF do usuario: ")
-    usuario = filtrar_usuario(cpf, usuarios)
+    cliente = filtrar_cliente(cpf, clientes)
 
-    if usuario:
+    if not cliente:
         print('''
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       cliente nao encontrado.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+''')    
+        return
+        
+    conta = Conta.nova_conta(cliente=cliente, numero=numero)
+    contas.append(conta)
+    cliente.adicionar_conta(conta)
+
+
+    print('''
 ------------------------------
    Conta criada com sucesso
 ------------------------------
 ''')
-        return {'agencia':agencia, 'numero_conta':numero_conta, 'usuario':usuario}
-    print('''
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-       Usuario nao encontrado.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-''')
-
+        
 def listar_contas(contas):
     for conta in contas:
-        linha = f'''
-            Agencia:\t{conta['agencia']}
-            C/C:\t\t{conta['numero_conta']}
-            Titular:\t{conta['usuario']['nome']}      
-        '''
         print('=' *100)
-        print(textwrap.dedent(linha))
+        print(textwrap.dedent(str(conta)))
+   
+def recuperar_conta_cliente(cliente):
+    if not cliente.contas:
+        print("!!! Cliente nao possui conta !!!")
+        return
+    else:
+        return cliente.contas[0]
+
+def filtrar_cliente(cpf, clientes):
+    clientes_filtrados = [cliente for cliente in clientes if cliente.cpf == cpf]
+    return clientes_filtrados[0] if clientes_filtrados else None
+
+def exibir_extrato(clientes):
+    cpf = input("Informe o CPF do cliente: ")
+    cliente = filtrar_cliente(cpf, clientes)
+
+    if not cliente:
+        print("!!! Cliente nao encontrado !!!")
+        return
+
+    conta = recuperar_conta_cliente(cliente)
+    if not conta:
+        return
+    
+    print("=============EXTRATO=============")
+    transacoes = conta.historico.transacoes
+
+    extrato = ""
+    if not transacoes:
+        extrato = "Nao foram realizadas transacoes"
+    else:
+        for transacao in transacoes:
+            extrato += f"\n{transacao['tipo']}:\n\tR${transacao['valor']:.2f}"
+
+    print(extrato)
+    print(f"\nSaldo:\n\tR${conta.saldo:.2f}")
+    print("=================================")
 
 def main():
-    saldo = 0 
-    limite = 500
-    LIMITES_SAQUE = 3
-    AGENCIA = "0001"
-    usuarios = []
+    clientes = []
     contas = []
-    extrato_d = ""
-    extrato_s = ""
-    qntd_saques = 0
 
     while True:
         opc = menu()
 
         if opc == 'd':
-            valor = float(input("Valor do deposito: R$"))
-            saldo, extrato_d = depositar(saldo, valor, extrato_d)
+            depositar(clientes)
         
         elif opc == 's':
-            saldo, extrato_s, qntd_saques = sacar(
-                 saldo=saldo,
-                 limite=limite,
-                 qntd_saques=qntd_saques,
-                 limites_saques=LIMITES_SAQUE,
-                 extrato_saque=extrato_s
-            )
+            sacar(clientes)
         
         elif opc == "e":
-            print("PROCESSANDO...")
-            sleep(2.5)
-            exibir_extrato(saldo, extrato_d=extrato_d, extrato_s=extrato_s)
+            exibir_extrato(clientes)
         
         elif opc == "nu":
-            criar_usuario(usuarios)
+            criar_cliente(clientes)
 
         elif opc == 'nc':
-            numero_conta = len(contas) +1
-            conta = criar_conta(AGENCIA, numero_conta, usuarios)
+            numero = len(contas) + 1
+            conta = criar_conta(clientes, numero, contas)
 
             if conta:
                 contas.append(conta)
@@ -236,39 +395,6 @@ def main():
                    VOLTE SEMPRE
             -=-=-=-=-=-=-=-=-=-=-=-=-=
             ''')
-            break                
-                
-
+            break       
 
 main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-               
-    
-            
-        
