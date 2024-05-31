@@ -1,6 +1,7 @@
-from abc import ABC, ABCMeta, abstractclassmethod, abstractproperty
+from abc import ABC, abstractclassmethod, abstractproperty
 from time import sleep
 from datetime import datetime
+import textwrap
 
 class Cliente:
     def __init__(self, endereco):
@@ -92,7 +93,7 @@ class Conta:
                     sleep(2)
                     print('''
                     ------------------------------------
-                        Digite um valor valido 
+                         Digite um valor valido 
                     ------------------------------------
                     ''')
                 elif valor > self.saldo:
@@ -230,6 +231,7 @@ def menu():
     ==============================
 
     => '''
+    return input(textwrap.dedent(menu))
 
 def depositar(clientes):
     cpf = input("Informe o CPF do cliente: ")
@@ -265,9 +267,9 @@ def sacar(clientes):
     
     cliente.realizar_transacao(conta, transacao)
 
-def criar_usuario(usuarios):
+def criar_cliente(clientes):
     cpf = input("Informe o CPF(somente numeros): ")
-    usuario = filtrar_usuario(cpf, usuarios)
+    usuario = filtrar_cliente(cpf, clientes)
 
     if usuario:
          print('''
@@ -280,24 +282,49 @@ def criar_usuario(usuarios):
     data_nascimento = input("Informe a data de nascimento(dd/mm/aaaa): ")
     endereco = input("Informe o endereco(logradouro, nro - bairro - cidade/sigla estado): ")
 
-    usuarios.append({'nome':nome,
-                     'data_nascimento':data_nascimento,
-                     'endereco':endereco,
-                     'cpf':cpf 
-                     })
+    cliente = PessoaFisica(nome=nome, data_nascimento=data_nascimento, cpf=cpf, endereco=endereco)
+    
+    clientes.append(cliente)
     print('''
 ------------------------------
   Usuario criado com sucesso
 ------------------------------
 ''')
+    
+def criar_conta(clientes, numero, contas):
+    cpf = input("Informe o CPF do usuario: ")
+    cliente = filtrar_cliente(cpf, clientes)
 
+    if not cliente:
+        print('''
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       cliente nao encontrado.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+''')    
+        return
+        
+    conta = Conta.nova_conta(cliente=cliente, numero=numero)
+    contas.append(conta)
+    cliente.contas.append(contas)
+
+
+    print('''
+------------------------------
+   Conta criada com sucesso
+------------------------------
+''')
+        
+def listar_contas(contas):
+    for conta in contas:
+        print('=' *100)
+        print(textwrap.dedent(str(conta)))
+   
 def recuperar_conta_cliente(cliente):
     if not cliente.contas:
         print("!!! Cliente nao possui conta !!!")
         return
     else:
-        n_conta = int(input("Informe o numero da conta: "))
-        return cliente.contas[n_conta]
+        return cliente.contas[0]
 
 def filtrar_cliente(cpf, clientes):
     clientes_filtrados = [cliente for cliente in clientes if cliente.cpf == cpf]
@@ -329,7 +356,6 @@ def exibir_extrato(clientes):
     print(f"\nSaldo:\n\tR${conta.saldo:.2f}")
     print("=================================")
 
-
 def main():
     clientes = []
     contas = []
@@ -347,11 +373,11 @@ def main():
             exibir_extrato(clientes)
         
         elif opc == "nu":
-            criar_usuario(clientes)
+            criar_cliente(clientes)
 
         elif opc == 'nc':
-            numero_conta = len(contas) +1
-            conta = criar_conta(AGENCIA, numero_conta, usuarios)
+            numero = len(contas) + 1
+            conta = criar_conta(clientes, numero, contas)
 
             if conta:
                 contas.append(conta)
@@ -366,3 +392,5 @@ def main():
             -=-=-=-=-=-=-=-=-=-=-=-=-=
             ''')
             break       
+
+main()
