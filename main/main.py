@@ -44,6 +44,9 @@ class PessoaFisica(Cliente):
         self.data_nascimento = data_nascimento
         self.cpf = cpf
 
+    def __repr__(self) -> str:
+        return  f"<{self.__class__.__name__}: ({self.cpf})>"
+
 
 class Conta:
     def __init__(self, numero, cliente):
@@ -55,6 +58,9 @@ class Conta:
         self._limite = 500
         self._LIMITES_SAQUE = 3
         self._qntd_saques = 0
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}: ('{self.agencia}', '{self.numero}', '{self.cliente.nome}')>"
 
     @classmethod
     def nova_conta(cls, cliente, numero):
@@ -92,7 +98,7 @@ class Conta:
     def qntdSaque(self):
         return self._qntd_saques
 
-    
+
     def sacar(self, valor):
         if self.qntdSaque == self.limiteSaque:
             print("PROCESSANDO...")
@@ -235,6 +241,7 @@ class Depositar(Transacao):
 
         if sucesso_transacao:
             conta.historico.adicionar_transacao(self)
+
 
 def log_transacao(funcao):
     @functools.wraps(funcao)
